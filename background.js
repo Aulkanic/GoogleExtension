@@ -1,28 +1,35 @@
 const fetchThreatData = async () => {
-    const urlsToBlock = [];
-  
-    const openPhishResponse = await fetch('https://openphish.com/feed.txt');
-    const openPhishData = await openPhishResponse.text();
-    console.log(openPhishData)
-  
-    urlsToBlock.push(...openPhishData.split('\n').filter(url => url));
-  
-    // Here you can add similar fetch calls to URLScan.io and Hybrid AnalysisupdateBlockingRules(urlsToBlock);
-  };
-  
-  const updateBlockingRules = (urls) => {
-    const rules = urls.map((url, index) => ({
+  const urlsToBlock = [];
+
+  try {
+      // Fetch from OpenPhish
+      const openPhishResponse = await fetch('https://openphish.com/feed.txt');
+      if (!openPhishResponse.ok) throw new Error('Failed to fetch OpenPhish data');
+      const openPhishData = await openPhishResponse.text();
+      urlsToBlock.push(...openPhishData.split('\n').filter(url => url.trim() !== ''));
+      
+      updateBlockingRules(urlsToBlock);
+
+  } catch (error) {
+      console.error('Error fetching threat data:', error);
+  }
+};
+
+const updateBlockingRules = (urls) => {
+  const rules = urls.map((url, index) => ({
       id: index + 1,
       priority: 1,
       action: { type: "block" },
       condition: { urlFilter: url, resourceTypes: ["main_frame"] }
-    }));
-  
-    chrome.declarativeNetRequest.updateDynamicRules({
+  }));
+
+  chrome.declarativeNetRequest.updateDynamicRules({
       addRules: rules,
       removeRuleIds: rules.map(rule => rule.id)
-    });
-  };
-  
-  setInterval(fetchThreatData, 3600000);
-  
+  });
+};
+
+// Fetch threat data initially
+fetchThreatData();
+
+

@@ -1,5 +1,9 @@
-document.getElementById('update').addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'updateThreatData' });
-    alert('Threat data is being updated.');
+document.getElementById('updateBlacklist').addEventListener('click', () => {
+  chrome.runtime.sendMessage({ action: 'updateBlacklist' }, (response) => {
+      if (response.success) {
+          alert('Blacklist updated successfully!');
+      } else {
+          alert('Failed to update blacklist.');
+      }
   });
-  
+});
