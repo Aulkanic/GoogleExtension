@@ -12,12 +12,13 @@
     "notifications",
     "scripting",
     "tabs",
-    "webNavigation"
+    "webNavigation",
+     "storage"
   ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["popup.js"]
     }
   ],
   "action": {
@@ -27,5 +28,11 @@
       "48": "icons/icon48.png",
       "128": "icons/icon48.png"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["danger.html", "safe.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
