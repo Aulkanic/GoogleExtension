@@ -1,30 +1,31 @@
 {
-    "manifest_version": 3,
-    "name": "Anti-Phishing Extension",
-    "version": "1.0",
-    "description": "Protects against phishing threats by blocking malicious sites.",
-    "permissions":  [
-        "storage",
-        "notifications",
-        "declarativeNetRequest",
-        "activeTab"
-      ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "16": "icons/icon48.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon48.png"
-      }
-    },
-    "host_permissions": ["<all_urls>"],
-    "icons": {
+  "manifest_version": 3,
+  "name": "Anti-Phishing Extension",
+  "version": "1.0",
+  "description": "Blocks phishing sites and alerts the user.",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "notifications",
+    "scripting",
+    "tabs",
+    "webNavigation"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
       "16": "icons/icon48.png",
       "48": "icons/icon48.png",
       "128": "icons/icon48.png"
     }
   }
-  
+}
