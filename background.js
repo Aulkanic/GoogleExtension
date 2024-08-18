@@ -32,8 +32,6 @@ const updateBlockingRules = (urls) => {
 
 const checkURL = (url) => {
   return urlsToBlock.some(phishingUrl => {
-    console.log('hello')
-    console.log(phishingUrl.trim() === url)
     return url.includes(phishingUrl.trim())
   });
 };
@@ -56,18 +54,13 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
           const tabId = tabs[0].id;
           chrome.scripting.executeScript({
             target: { tabId: tabId },
-            func: () => { console.log("Content script is ready") }
-          });
-          chrome.tabs.sendMessage(tabs[0].id, {
-            action: "showWarning",
-            message: "Warning: This site is flagged as dangerous!",
-          }, (response) => {
-            console.log(response)
-            if (chrome.runtime.lastError) {
-              console.error("Message failed: ", chrome.runtime.lastError.message);
-            } else {
-              console.log("Message sent successfully:", response);
-            }
+            files: ["content.js"] // Make sure content.js is listed in your manifest
+          }, () => {
+            // After injection, send the warning message
+            chrome.tabs.sendMessage(tabs[0].id, {
+              action: "showWarning",
+              message: "Warning: This site is flagged as dangerous!",
+            });
           });
         }
       });
@@ -80,10 +73,6 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
 }, { url: [{ urlMatches: 'http://*/*' }, { urlMatches: 'https://*/*' }] });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  console.log("Tab updated:", tabId);
-  console.log("Change info:", changeInfo);
-  console.log("Tab details:", tab);
-
   if (changeInfo.url) {
     console.log("URL updated to:", changeInfo.url);
 
@@ -92,26 +81,26 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
     if (isPhishing) {
       console.log("Sending warning message to content script for tab:", tabId);
-      chrome.tabs.sendMessage(tabId, { 
-        action: "showWarning", 
-        message: "Warning: This site is flagged as dangerous!" 
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.error("Message failed:", chrome.runtime.lastError.message);
-        } else {
-          console.log("Warning message sent successfully.");
-        }
+      chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ["content.js"] // Make sure content.js is listed in your manifest
+      }, () => {
+        // After injection, send the warning message
+        chrome.tabs.sendMessage(tabId, {
+          action: "showWarning",
+          message: "Warning: This site is flagged as dangerous!",
+        });
       });
     } else {
       console.log("Sending safe message to content script for tab:", tabId);
-      chrome.tabs.sendMessage(tabId, { 
-        action: "showSafe"
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.error("Message failed:", chrome.runtime.lastError.message);
-        } else {
-          console.log("Safe message sent successfully.");
-        }
+      chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ["content.js"] // Make sure content.js is listed in your manifest
+      }, () => {
+        // After injection, send the warning message
+        chrome.tabs.sendMessage(tabId, {
+          action: "showSafe",
+        });
       });
     }
   }
