@@ -1,21 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
-    chrome.storage.local.get(['isPhishing'], (result) => {
+    // Query the current active tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const currentTab = tabs[0];
+  
+      // Retrieve the phishing status from storage
+      chrome.storage.local.get(['isPhishing'], (result) => {
         const isPhishing = result.isPhishing;
-
+         console.log(result)
         if (isPhishing) {
-            // Redirect to danger.html
-            fetch(chrome.runtime.getURL('danger.html'))
-                .then(response => response.text())
-                .then(text => {
-                    document.body.innerHTML = text;
-                });
+          document.getElementById('dangerOkButton').addEventListener('click', () => {
+            window.close();
+          });
         } else {
-            // Redirect to safe.html
-            fetch(chrome.runtime.getURL('safe.html'))
-                .then(response => response.text())
-                .then(text => {
-                    document.body.innerHTML = text;
-                });
+          document.getElementById('safeOkButton').addEventListener('click', () => {
+            window.close();
+          });
         }
+      });
     });
-});
+  });
+  

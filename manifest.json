@@ -13,26 +13,24 @@
     "scripting",
     "tabs",
     "webNavigation",
-     "storage"
+     "storage",
+     "alarms",
+     "contextMenus"
+  ],
+  "host_permissions": [
+    "*://*/*"
   ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["popup.js"]
+      "js": ["content.js"]
     }
   ],
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon48.png",
       "48": "icons/icon48.png",
       "128": "icons/icon48.png"
     }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["danger.html", "safe.html"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }

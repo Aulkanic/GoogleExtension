@@ -1,16 +1,12 @@
-const fetchThreatData = async () => {
-  const urlsToBlock = ["https://mailer-sender.vercel.app/openphish"];
+let urlsToBlock = ['https://www.youtube.com/','https://www.jollibee.com.ph/'];
 
+const fetchThreatData = async () => {
   try {
-    const openPhishResponse = await fetch(
-      "https://mailer-sender.vercel.app/openphish"
-    );
-    if (!openPhishResponse.ok)
-      throw new Error("Failed to fetch OpenPhish data");
-    const openPhishData = await openPhishResponse.text();
-    urlsToBlock.push(
-      ...openPhishData.split("\n").filter((url) => url.trim() !== "")
-    );
+    const response = await fetch("https://mailer-sender.vercel.app/openphish");
+    if (!response.ok) throw new Error("Failed to fetch OpenPhish data");
+    const data = await response.text();
+    const list = data.split("\n").filter((url) => url.trim() !== "");
+    urlsToBlock.push(...list)
     updateBlockingRules(urlsToBlock);
   } catch (error) {
     console.error("Error fetching threat data:", error);
@@ -24,53 +20,46 @@ const updateBlockingRules = (urls) => {
     action: { type: "block" },
     condition: { urlFilter: url, resourceTypes: ["main_frame"] },
   }));
-
   chrome.declarativeNetRequest.updateDynamicRules({
     addRules: rules,
     removeRuleIds: rules.map((rule) => rule.id),
   });
 };
 
-// Fetch threat data initially
-fetchThreatData();
-
-
-const checkURL = async (url, tabId) => {
-  try {
-      if (url.startsWith('chrome://') || url.startsWith('about:') || url.startsWith('file://')) {
-          console.log('Ignoring non-web URL:', url);
-          return;
-      }
-
-      console.log('Checking URL:', url);
-      const response = await fetch('https://mailer-sender.vercel.app/openphish');
-      if (!response.ok) throw new Error('Failed to fetch phishing data');
-      const data = await response.text();
-      const phishingUrls = data.split('\n').filter(line => line.trim() !== '');
-
-      const isPhishing = phishingUrls.some(phishingUrl => url.includes(phishingUrl.trim()));
-      console.log('Is this a phishing site?', isPhishing);
-      chrome.storage.local.set({ isPhishing, phishingUrl: url }, () => {
-        console.log('Phishing status and URL stored.');
-    });
-    if (isPhishing) {
-      console.log('Updating blocking rules with detected phishing URL:', url);
-      updateBlockingRules([url]); // Add the detected URL to the blocking rules
-    }
-
-  } catch (error) {
-      console.error('Error checking URL:', error);
-  }
+const checkURL = (url) => {
+  return urlsToBlock.some(phishingUrl => url.includes(phishingUrl.trim()));
 };
 
-chrome.webNavigation.onCompleted.addListener((details) => {
-  chrome.tabs.get(details.tabId, (tab) => {
-      if (tab.url && !isInternalPage(tab.url)) {
-          checkURL(tab.url, details.tabId);
-      }
-  });
+chrome.webNavigation.onCompleted.addListener(async (details) => {
+  if (details.url && !isInternalPage(details.url)) {
+    const isPhishing = checkURL(details.url);
+    if (isPhishing) {
+      // Send a message to the content script to display a warning
+      chrome.tabs.sendMessage(details.tabId, { 
+        action: "showWarning", 
+        message: "Warning: This site is flagged as dangerous!" 
+      });
+
+      // Apply blocking rules after a slight delay to ensure the message is displayed
+      setTimeout(() => {
+        updateBlockingRules(urlsToBlock);
+      }, 3000); // Adjust the delay as needed
+    } else{
+      chrome.tabs.sendMessage(details.tabId, { 
+        action: "showSafe", 
+      });
+    }
+  }
 }, { url: [{ urlMatches: 'http://*/*' }, { urlMatches: 'https://*/*' }] });
 
 const isInternalPage = (url) => {
   return url.startsWith('chrome://') || url.startsWith('about:') || url.startsWith('file://');
 };
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'blockSite') {
+    console.log('run')
+    fetchThreatData(); // Refresh threat data and update blocking rules
+  }
+});
+// fetchThreatData();
