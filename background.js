@@ -1,4 +1,4 @@
-let urlsToBlock = [];
+let urlsToBlock = ['https://www.google.com/'];
 
 const fetchThreatData = async () => {
   try {
@@ -27,11 +27,15 @@ const updateBlockingRules = (urls) => {
 };
 
 const checkURL = (url) => {
-  return urlsToBlock.some(phishingUrl => url.includes(phishingUrl.trim()));
+  return urlsToBlock.some(phishingUrl => {
+     console.log(phishingUrl.trim())
+    return url.includes(phishingUrl.trim())
+  });
 };
 
 chrome.webNavigation.onCompleted.addListener(async (details) => {
   if (details.url && !isInternalPage(details.url)) {
+    await fetchThreatData()
     const isPhishing = checkURL(details.url);
     if (isPhishing) {
       // Send a message to the content script to display a warning
