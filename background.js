@@ -1,4 +1,4 @@
-let urlsToBlock = ['https://www.youtube.com/','https://www.jollibee.com.ph/'];
+let urlsToBlock = [];
 
 const fetchThreatData = async () => {
   try {
