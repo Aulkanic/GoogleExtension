@@ -22,15 +22,22 @@
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
     }
   ],
   "action": {
     "default_icon": {
-      "16": "icons/icon48.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon48.png"
+      "16": "icons/1.png",
+      "48": "icons/1.png",
+      "128": "icons/1.png"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/1.png","icons/2.png"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
