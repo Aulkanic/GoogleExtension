@@ -142,3 +142,43 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 fetchThreatData();
+
+let isExtensionEnabled = true; // Initial state
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "toggleExtension") {
+    isExtensionEnabled = !isExtensionEnabled; // Toggle the state
+    chrome.storage.local.set({ isExtensionEnabled: isExtensionEnabled });
+    console.log(`Extension ${isExtensionEnabled ? 'enabled' : 'disabled'}`);
+
+    // Send a message to content script to update its state
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'checkExtensionState' });
+    });
+  } else if (message.action === "blockSite") {
+    if (isExtensionEnabled) {
+      // Add logic to block the site
+      console.log("Site blocked");
+      // Example logic to block the site (add this if you have a specific blocking mechanism)
+      chrome.webRequest.onBeforeRequest.addListener(
+        function(details) { return { cancel: true }; },
+        { urls: [details.url] },
+        ["blocking"]
+      );
+    }
+  }
+});
+
+// Initialize the extension state on startup
+chrome.storage.local.get("isExtensionEnabled", (result) => {
+  console.log('check',result)
+  if (result.isExtensionEnabled === undefined) {
+    // If no state is stored, default to enabled
+    chrome.storage.local.set({ isExtensionEnabled: true });
+  } else {
+    isExtensionEnabled = result.isExtensionEnabled;
+  }
+});
+
+
+

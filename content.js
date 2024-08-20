@@ -1,17 +1,41 @@
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === "showWarning") {
-    replacePageContent();
-    showSafetyModal(true, message.message);
+    chrome.storage.local.get("isExtensionEnabled", (result) => {
+      console.log(result);
+      const modalContent = document.getElementById("toggleExtension");
+      if (modalContent) {
+        toggleIcon.style.color = result.isExtensionEnabled ? "green" : "red";
+      }
+      if (result.isExtensionEnabled) {
+        replacePageContent();
+        showSafetyModal(true, message.message,true);
+      } else {
+        showSafetyModal(true, message.message,false);
+      }
+    });
   } else if (message.action === "showSafe") {
-    showSafetyModal(false); // Display safe site modal
+    chrome.storage.local.get("isExtensionEnabled", (result) => {
+      const modalContent = document.getElementById("toggleExtension");
+      if (modalContent) {
+        toggleIcon.style.color = result.isExtensionEnabled ? "green" : "red";
+      }
+      showSafetyModal(false,'',true); // Display safe site modal
+    });
+  } else if (message.action === "checkExtensionState") {
+    chrome.storage.local.get("isExtensionEnabled", (result) => {
+      const modalContent = document.getElementById("toggleExtension");
+      if (modalContent) {
+        toggleIcon.style.color = result.isExtensionEnabled ? "green" : "red";
+      }
+    });
   } else {
     console.error("Unknown action:", message.action); // Debugging unknown actions
   }
 });
-const imageUrl = chrome.runtime.getURL('icons/2.png');
-const imageUrl1 = chrome.runtime.getURL('icons/1.png');
+const imageUrl = chrome.runtime.getURL("icons/2.png");
+const imageUrl1 = chrome.runtime.getURL("icons/1.png");
 
-const showSafetyModal = (isPhishing, warningMessage = "") => {
+const showSafetyModal = (isPhishing, warningMessage = "",isExtensionEnabled) => {
   const modalContainer = document.createElement("div");
   modalContainer.style.position = "fixed";
   modalContainer.style.top = "10px"; // Adjust the top offset as needed
@@ -33,13 +57,19 @@ const showSafetyModal = (isPhishing, warningMessage = "") => {
   modalContent.style.alignItems = "center";
   modalContent.style.display = "flex";
   modalContent.style.justifyContent = "center";
-
+  const powerIconColor = isExtensionEnabled ? "green" : "red";
   if (isPhishing) {
     modalContent.innerHTML = `
-    <div style="width: 100%;display: flex;flex-direction: column;justify-content: center;align-items: center;">
-        <img style="width: 100px; height: 100px;" src="${imageUrl}" alt="">
+    <div style="width: 100%;display: flex;flex-direction: column;justify-content: center;align-items: center;position:relative;">
+        <img style="width: 100px; height: 50px;position:absolute;right:2px;top:-2px;object-fit:fill;" src="${imageUrl}" alt="">
+                    <div id="toggleExtension" style="cursor: pointer; margin: 10px; background:black;border-radius:50%;padding:12px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="${powerIconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                <line x1="12" y1="2" x2="12" y2="12"/>
+              </svg>
+            </div>
         <h1>PHISNET CURRENTLY</h1>
-        <p style="color: rgb(8, 193, 8);">ENABLED</p>
+    <p id="toggleExtension" style="color: rgb(8, 193, 8);cursor: pointer;">DISABLE</p>
         <div style="width: 90%; height: max-content;background-color: black;color: white;padding:8px;border-radius: 4px;margin-left: 4px;margin-right: 4px;text-align: center;">
             <p>WEBSITE URL: ${window.location.href}</p>
             <p>STATUS:<span style="color: ${
@@ -53,10 +83,16 @@ const showSafetyModal = (isPhishing, warningMessage = "") => {
   `;
   } else {
     modalContent.innerHTML = `
-    <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-      <img style="width: 100px; height: 100px;" src="${imageUrl}" alt="">
+    <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;position:relative;">
+      <img style="width: 100px; height: 100px;position:absolute;right:2px;top:2px;" src="${imageUrl}" alt="">
+                  <div id="toggleExtension" style="cursor: pointer; margin: 10px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${powerIconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                <line x1="12" y1="2" x2="12" y2="12"/>
+              </svg>
+            </div>
         <h1 style="color:black;font-size:18px">PHISNET CURRENTLY</h1>
-        <p style="color: rgb(8, 193, 8);">ENABLED</p>
+        <p id="toggleExtension" style="color: rgb(8, 193, 8);cursor: pointer;">DISABLE</p>
       <div style="width: 90%; height: max-content; background-color: black; color: white; padding: 8px; border-radius: 4px; margin-left: 4px; margin-right: 4px; text-align: center;">
         <p>WEBSITE URL: ${window.location.href}</p>
         <p>STATUS: <span style="color: green; font-weight: bold;">SAFE</span></p>
@@ -74,6 +110,10 @@ const showSafetyModal = (isPhishing, warningMessage = "") => {
     if (isPhishing) {
       blockSite(); // Block the site after the modal is closed
     }
+  });
+  document.getElementById("toggleExtension").addEventListener("click", () => {
+    chrome.runtime.sendMessage({ action: "toggleExtension" });
+    location.reload();
   });
 };
 
