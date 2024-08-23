@@ -76,7 +76,7 @@ chrome.webNavigation.onCompleted.addListener((details) => {
                 if (chrome.runtime.lastError.message.includes("Frame with ID 0 is showing error page")) {
                   console.log("Opening a new tab with warning content.");
                   chrome.tabs.update(tabId, {
-                    url: chrome.runtime.getURL("popup.html")
+                    url: chrome.runtime.getURL(`popup.html?blockedUrl=${encodeURIComponent(details.url)}`)
                   });
                 }
               } else {
@@ -122,7 +122,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
         if (chrome.runtime.lastError.message.includes("Frame with ID 0 is showing error page")) {
           console.log("Opening a new tab with warning content.");
           chrome.tabs.update(tabId, {
-            url: chrome.runtime.getURL("popup.html")
+            url: chrome.runtime.getURL(`popup.html?blockedUrl=${encodeURIComponent(details.url)}`)
           });
         }
       } else {

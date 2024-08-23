@@ -39,3 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
       window.close(); // Close the current tab
   });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Extract the blocked URL from the query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const blockedUrl = urlParams.get('blockedUrl');
+  
+    if (blockedUrl) {
+      document.getElementById('siteUrl').textContent = blockedUrl;
+    } else {
+      document.getElementById('siteUrl').textContent = 'Unknown';
+    }
+  });
+  
