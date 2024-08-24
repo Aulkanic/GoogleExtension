@@ -40,15 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Extract the blocked URL from the query parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const blockedUrl = urlParams.get('blockedUrl');
   
-    if (blockedUrl) {
+  document.addEventListener('DOMContentLoaded', function () {
+    // Retrieve the blocked URL from chrome.storage.local
+    chrome.storage.local.get('blockedUrl', function (data) {
+      const blockedUrl = data.blockedUrl || 'Unknown';
       document.getElementById('siteUrl').textContent = blockedUrl;
-    } else {
-      document.getElementById('siteUrl').textContent = 'Unknown';
-    }
+    });
   });
   

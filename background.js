@@ -75,8 +75,10 @@ chrome.webNavigation.onCompleted.addListener((details) => {
                 console.error("Failed to inject script:", chrome.runtime.lastError.message);
                 if (chrome.runtime.lastError.message.includes("Frame with ID 0 is showing error page")) {
                   console.log("Opening a new tab with warning content.");
-                  chrome.tabs.update(tabId, {
-                    url: chrome.runtime.getURL(`popup.html`)
+                  chrome.storage.local.set({ blockedUrl: details.url }, () => {
+                    chrome.tabs.update(tabId, {
+                      url: chrome.runtime.getURL("popup.html")
+                    });
                   });
                 }
               } else {
@@ -121,8 +123,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
         console.error("Failed to inject script:", chrome.runtime.lastError.message);
         if (chrome.runtime.lastError.message.includes("Frame with ID 0 is showing error page")) {
           console.log("Opening a new tab with warning content.");
-          chrome.tabs.update(tabId, {
-            url: chrome.runtime.getURL(`popup.html`)
+          chrome.storage.local.set({ blockedUrl: details.url }, () => {
+            chrome.tabs.update(tabId, {
+              url: chrome.runtime.getURL("popup.html")
+            });
           });
         }
       } else {
